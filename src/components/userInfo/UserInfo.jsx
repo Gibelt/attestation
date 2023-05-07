@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Modal, Row, Col, Image } from 'react-bootstrap'
+import { Modal, Row, Col, Image, Alert } from 'react-bootstrap'
 import Api from '../../api/api'
 
 export default function UserInfo(props) {
   const [info, setInfo] = useState('')
 
   useEffect(() => {
+    props.setError('')
     Api.get(`/users/${props.login}`).then((res) => {
       setInfo(res.data)
-    })
+    }).catch((err) => props.setError(err.message))
   }, [props.login])
 
   return (
@@ -20,7 +21,7 @@ export default function UserInfo(props) {
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          {props.login}
+          {props.error ? <Alert variant="danger">{props.error}</Alert> : props.login}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

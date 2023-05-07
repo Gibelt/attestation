@@ -7,6 +7,7 @@ import {
   Image,
   FloatingLabel,
   Spinner,
+  Alert,
 } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
 import UserInfo from './components/userInfo/UserInfo'
@@ -22,6 +23,7 @@ function App() {
   const [isOpen, setIsOpen] = useState(false)
   const [showAllUsers, setShowAllUsers] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [login, setLogin] = useState('')
   const [activePage, setActivePage] = useState(1)
   const [totalUsers, setTotalUsers] = useState(0)
@@ -43,24 +45,38 @@ function App() {
   const handleSearchSubmit = (e) => {
     e.preventDefault()
     setIsLoading(true)
-    Api.get(`/users/${searchValue}`).then((res) => {
-      setUsers([res.data])
-      setTotalUsers(1)
-      setShowAllUsers(true)
-      setSearchValue('')
-      setIsLoading(false)
-    })
+    setError('')
+    Api.get(`/users/${searchValue}`)
+      .then((res) => {
+        setUsers([res.data])
+        setTotalUsers(1)
+        setShowAllUsers(true)
+        setSearchValue('')
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message)
+        setSearchValue('')
+        setShowAllUsers(true)
+        setIsLoading(false)
+      })
   }
 
   const handelShowAllUserClick = () => {
     setShowAllUsers(false)
     setSort('def')
     setActivePage(1)
-    Api.get(`/search/users?q=type:user&page=${activePage}`).then((res) => {
-      setUsers(res.data.items)
-      setTotalUsers(res.data.total_count)
-      setIsLoading(false)
-    })
+    setError('')
+    Api.get(`/search/users?q=type:user&page=${activePage}`)
+      .then((res) => {
+        setUsers(res.data.items)
+        setTotalUsers(res.data.total_count)
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message)
+        setIsLoading(false)
+      })
   }
 
   const handelPageClick = (number) => {
@@ -81,31 +97,47 @@ function App() {
 
   useEffect(() => {
     setIsLoading(true)
+    setError('')
     switch (sort) {
       case 'asc':
         Api.get(
           `search/users?q=type:user&sort=repositories&order=asc&page=${activePage}`
-        ).then((res) => {
-          setUsers(res.data.items)
-          setTotalUsers(res.data.total_count)
-          setIsLoading(false)
-        })
+        )
+          .then((res) => {
+            setUsers(res.data.items)
+            setTotalUsers(res.data.total_count)
+            setIsLoading(false)
+          })
+          .catch((err) => {
+            setError(err.message)
+            setIsLoading(false)
+          })
         break
       case 'desc':
         Api.get(
           `search/users?q=type:user&sort=repositories&order=desc&page=${activePage}`
-        ).then((res) => {
-          setUsers(res.data.items)
-          setTotalUsers(res.data.total_count)
-          setIsLoading(false)
-        })
+        )
+          .then((res) => {
+            setUsers(res.data.items)
+            setTotalUsers(res.data.total_count)
+            setIsLoading(false)
+          })
+          .catch((err) => {
+            setError(err.message)
+            setIsLoading(false)
+          })
         break
       default:
-        Api.get(`/search/users?q=type:user&page=${activePage}`).then((res) => {
-          setUsers(res.data.items)
-          setTotalUsers(res.data.total_count)
-          setIsLoading(false)
-        })
+        Api.get(`/search/users?q=type:user&page=${activePage}`)
+          .then((res) => {
+            setUsers(res.data.items)
+            setTotalUsers(res.data.total_count)
+            setIsLoading(false)
+          })
+          .catch((err) => {
+            setError(err.message)
+            setIsLoading(false)
+          })
         break
     }
   }, [sort, activePage])
@@ -165,16 +197,22 @@ function App() {
             login={login}
             show={isOpen}
             onHide={() => setIsOpen(false)}
+            setError={setError}
+            error={error}
           />
         )}
-        <ListGroup>
-          {isLoading ? (
-            <Spinner animation="grow" className="align-self-center mt-5" />
-          ) : (
-            list
-          )}
-        </ListGroup>
-        {totalUsers >= 1000 && (
+        {error ? (
+          <Alert variant="danger">{error}</Alert>
+        ) : (
+          <ListGroup>
+            {isLoading ? (
+              <Spinner animation="grow" className="align-self-center mt-5" />
+            ) : (
+              list
+            )}
+          </ListGroup>
+        )}
+        {!error && totalUsers >= 1000 && (
           <PaginationComponent
             itemsCount={1000}
             itemsPerPage={30}
