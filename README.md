@@ -1,3 +1,7 @@
+# About Application
+
+This is an application for searching and sorting users from [github.com](https://github.com).
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
